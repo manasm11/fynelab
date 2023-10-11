@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/theme"
 )
@@ -41,8 +39,6 @@ func (l *fysionLayout) Layout(_ []fyne.CanvasObject, size fyne.Size) {
 
 	l.seps[1].Move(fyne.NewPos(sideWidth, topHeight))
 	l.seps[1].Resize(fyne.NewSize(sepThickness, size.Height-topHeight))
-
-	log.Println("Size", size)
 }
 
 func (l *fysionLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
