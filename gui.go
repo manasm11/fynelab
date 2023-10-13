@@ -23,27 +23,68 @@ Or open an existing one that you created earlier.`
 type gui struct {
 	win   fyne.Window
 	title binding.String
+
+	fileTree binding.URITree
 }
 
-func makeBanner() fyne.CanvasObject {
-	toolbar := widget.NewToolbar(
-		widget.NewToolbarAction(theme.HomeIcon(), func() {}),
-	)
+func (g *gui) makeBanner() fyne.CanvasObject {
+	title := canvas.NewText("App Creator", theme.ForegroundColor())
+	title.TextSize = 14
+	title.TextStyle = fyne.TextStyle{Bold: true}
+
+	g.title.AddListener(binding.NewDataListener(func() {
+		name, _ := g.title.Get()
+		if name == "" {
+			name = "App Creator"
+		}
+		title.Text = name
+		title.Refresh()
+	}))
+
+	home := widget.NewButtonWithIcon("", theme.HomeIcon(), func() {})
+	left := container.NewHBox(home, title)
+
 	logo := canvas.NewImageFromResource(resourceLogoPng)
 	logo.FillMode = canvas.ImageFillContain
-	return container.NewStack(toolbar, container.NewPadded(logo))
+
+	return container.NewStack(container.NewPadded(left), container.NewPadded(logo))
 }
 
 func (g *gui) makeGUI() fyne.CanvasObject {
+	g.fileTree = binding.NewURITree()
 	var (
-		top         = makeBanner()
-		left        = widget.NewLabel("Left")
-		right       = widget.NewLabel("Right")
+		top   = g.makeBanner()
+		files = widget.NewTreeWithData(g.fileTree, func(branch bool) fyne.CanvasObject {
+			return widget.NewLabel("filename.jpg")
+		}, func(data binding.DataItem, branch bool, obj fyne.CanvasObject) {
+			l := obj.(*widget.Label)
+			data.(binding.URI).Get()
+			u, _ := data.(binding.URI).Get()
+
+			name := u.Name()
+			l.SetText(name)
+		})
+		left = widget.NewAccordion(
+			widget.NewAccordionItem("Files", files),
+			widget.NewAccordionItem("Screens", widget.NewLabel("TODO Screens")),
+		)
+		right       = widget.NewRichTextFromMarkdown("## Settings")
 		contentRect = canvas.NewRectangle(color.Gray{Y: 0xee})
 		seps        = [3]fyne.CanvasObject{widget.NewSeparator(), widget.NewSeparator(), widget.NewSeparator()}
+		name, _     = g.title.Get()
+		window      = container.NewInnerWindow(name, widget.NewLabel("App Preview Here"))
+		picker      = widget.NewSelect([]string{"Desktop", "iPhone 15 Max"}, func(s string) {})
+		preview     = container.NewBorder((container.NewHBox(picker)), nil, nil, nil, container.NewCenter(window))
 	)
-	directory := widget.NewLabelWithData(g.title)
-	content := container.NewStack(contentRect, directory)
+
+	window.CloseIntercept = func() {}
+
+	picker.Selected = "Desktop"
+
+	left.Open(0)
+	left.MultiOpen = true
+
+	content := container.NewStack(contentRect, container.NewPadded(preview))
 	objs := []fyne.CanvasObject{top, left, right, content, seps[0], seps[1], seps[2]}
 
 	return container.New(newFysionLayout(top, left, right, content, seps), objs...)
@@ -61,11 +102,6 @@ func (g *gui) openProjectDialog() {
 
 		g.openProject(dir)
 	}, g.win)
-}
-
-func (g *gui) openProject(dir fyne.ListableURI) {
-	name := dir.Name()
-	g.title.Set(name)
 }
 
 func (g *gui) showCreate(w fyne.Window) {

@@ -2,7 +2,7 @@ module github.com/manasm11/fynelab
 
 go 1.21.1
 
-require fyne.io/fyne/v2 v2.4.0
+require fyne.io/fyne/v2 v2.4.1-rc1.0.20231009111630-0635d3e98c5d
 
 require (
 	fyne.io/systray v1.10.1-0.20230722100817-88df1e0ffa9a // indirect
